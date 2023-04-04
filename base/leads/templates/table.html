@@ -15,37 +15,53 @@
           <select class="form-control" id="order-by" name="option">
             <option value="recent"{% if request.GET.option == 'recent' %} selected{% endif %}>Agregados Más Recientes</option>
             <option value="old"{% if request.GET.option == 'old' %} selected{% endif %}>Agregados Más Antiguos</option>
+            {% if is_admin %}
             <option value="unassigned"{% if request.GET.option == 'unassigned' %} selected{% endif %}>Sin Asignar</option>
             <option value="assigned"{% if request.GET.option == 'assigned' %} selected{% endif %}>Asignados</option>
+            {% endif %}
           </select>
         </div>
         <button type="submit" class="btn btn-primary">Ordenar</button>
       </form>
     </div>
   </div>
-  {% for message in messages %}
-  <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} {% if message.level_tag == 'error' %}alert-danger{% endif %}" role="alert">
-    {{ message }}
-  </div>
-{% endfor %}
+  <div>
+    <form method="POST" id="assign-leads-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="global-closer">Asignar a seleccionados:</label>
+        <select class="form-control" id="global-closer" name="closer_id">
+          <option value="">-- Seleccione un closer --</option>
+          {% for closer in closers %}
+          <option value="{{ closer.id }}">{{ closer.username }}</option>
+          {% endfor %}
+        </select>
+        <button type="button" class="btn btn-primary" id="assign-selected">Asignar a seleccionados</button>
+      </div>
+  {% if is_admin %}
+  <!-- Tabla para el administrador -->
   <table class="table table-striped table-bordered">
     <thead>
       <tr>
+        <th></th>
         <th>Nombre</th>
-        <th>Fecha y hora</th>
+        <th>Fecha</th>
+        <th>Error</th>
         <th>Número</th>
         <th>WhatsApp  <i class="fab fa-whatsapp" style="color: green;"></i></th>
         <th>Closer</th>
-        <th>Acción</th>
+        <th>Asignar</th>
       </tr>
     </thead>
     <tbody>
       {% for lead in leads %}
         <tr>
+          <td><input type="checkbox" class="lead-checkbox" data-lead-id="{{ lead.id }}" value="{{ lead.id }}"><td>
           <td>{{ lead.nombre }}</td>
-          <td style="max-width: 20px;">{{ lead.fecha_hora|date:"d/m/Y H:i" }}</td>
+          <td>{{ lead.fecha_hora|date:"d-m-Y H:i" }}</td>
+          <td>{{ lead.error }}</td>
           <td>{{ lead.numero }}</td>
-          <td style="max-width: 50px;">
+          <td>
             {% if lead.numero %}
               <a href="https://wa.me/{{ lead.numero }}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
                 <i class="fab fa-whatsapp" style="color: green;"></i>
@@ -55,22 +71,211 @@
               -
             {% endif %}
           </td>
-          <td>{% if lead.closer %}{{ lead.closer }}{% else %}-{% endif %}</td>
           <td>
-            {% if lead.closer %}
-              <button type="button" class="btn btn-warning disabled">Asignado</button>
-            {% else %}
-              <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="lead_id" value="{{ lead.id }}">
-                <button type="submit" class="btn btn-primary">Asignar</button>
-              </form>
-            {% endif %}
+            <select class="form-control" id="closer-{{ lead.id }}" name="closer">
+              <option value="">-- Seleccione un closer --</option>
+              {% for closer in closers %}
+              <option value="{{ closer.id }}" {% if lead.closer and lead.closer.id == closer.id %}selected{% endif %}>{{ closer.username }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <button type="button" class="btn btn-primary assign-btn" data-lead-id="{{ lead.id }}">Asignar</button>
           </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
+
+
+
+
+  {% else %}
+    <!-- Tabla para el closer -->
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Número</th>
+          <th>WhatsApp  <i class="fab fa-whatsapp" style="color: green;"></i></th>
+          <th>Estado</th>
+          <th>Error</th>
+          <th>Contactado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+          <tr>
+            <td>{{ lead.nombre }}</td>
+            <td>{{ lead.numero }}</td>
+            <td>
+              {% if lead.numero %}
+                <a href="https://wa.me/{{ lead.numero }}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+                  <i class="fab fa-whatsapp" style="color: green;"></i>
+                  <span style="color: green;">Hablar al WhatsApp</span>
+                </a>
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              <button type="button" class="btn btn-warning disabled">Asignado</button>
+            </td>
+            <td>
+
+              {{ lead.error }}
+            </td>
+            
+              <td>
+                {% if lead.contacted %}
+                  <button type="button" class="btn btn-primary contact-btn" data-lead-id="{{ lead.id }}">Contactado</button>
+                {% else %}
+                  <button type="button" class="btn btn-secondary contact-btn" data-lead-id="{{ lead.id }}">Contactar</button>
+                {% endif %}
+              </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var contactButtons = document.querySelectorAll(".contact-btn");
+      contactButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var leadId = button.dataset.leadId;
+
+          // Enviar una solicitud AJAX al servidor para actualizar el estado de contacto
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/leads/");  // Asegúrate de que esta ruta coincida con la URL de tu vista
+          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+          xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+              if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.status === 'success') {
+                  if (response.contacted) {
+                    button.classList.remove('btn-secondary');
+                    button.classList.add('btn-primary');
+                    button.textContent = 'Contactado';
+                  } else {
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-secondary');
+                    button.textContent = 'Contactar';
+                  }
+                } else {
+                  console.error("Error al actualizar el estado de contacto");
+                }
+              } else {
+                console.error("Error en la solicitud AJAX: " + xhr.status);
+              }
+            }
+          };
+
+          xhr.send("lead_id=" + encodeURIComponent(leadId) + "&action=contact");
+        });
+      });
+    });
+  </script>
+
+  <script>
+     // Script seleccion individual
+    document.addEventListener("DOMContentLoaded", function () {
+      var assignButtons = document.querySelectorAll(".assign-btn");
+  
+      // Actualizar el estado del botón al cargar la página
+      assignButtons.forEach(function (button) {
+        var leadId = button.dataset.leadId;
+        var closerSelect = document.querySelector("#closer-" + leadId);
+        if (closerSelect.value) {
+          button.textContent = 'Asignado';
+          button.classList.remove('btn-primary');
+          button.classList.add('btn-success');
+          button.disabled = true;
+        }
+      });
+  
+      // Manejar el evento de clic en el botón "Asignar"
+      assignButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var leadId = button.dataset.leadId;
+          var closerId = document.querySelector("#closer-" + leadId).value;
+  
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/assign_lead/"); // Asegúrate de que esta ruta coincida con la URL de tu vista
+          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+          xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+  
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+              if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.status === 'success') {
+                  button.textContent = 'Asignado';
+                  button.classList.remove('btn-primary');
+                  button.classList.add('btn-success');
+                  button.disabled = true;
+                } else {
+                  alert('Error al asignar el lead');
+                }
+              } else {
+                alert('Error en la solicitud AJAX: ' + xhr.status);
+              }
+            }
+          };
+  
+          xhr.send("lead_id=" + encodeURIComponent(leadId) + "&closer_id=" + encodeURIComponent(closerId));
+        });
+      });
+    });
+  </script>
+
+
+  <script>
+    $(document).ready(function() {
+      // Manejar el evento de clic en el botón "Asignar a seleccionados"
+      $('#assign-selected').click(function() {
+        var leadIds = [];
+        $('.lead-checkbox:checked').each(function() {
+          leadIds.push($(this).val());
+        });
+  
+        var closerId = $('#global-closer').val();
+  
+        if (leadIds.length > 0 && closerId) {
+          $.ajax({
+            url: 'assign_lead_multiple/',
+            method: 'POST',
+            data: {
+              'lead_ids': JSON.stringify(leadIds),
+              'closer_id': closerId,
+              'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(response) {
+              if (response.status === 'success') {
+                alert('Leads asignados correctamente');
+                // Recargar la página después de asignar los leads
+                location.reload();
+              } else {
+                alert('Error al asignar los leads');
+              }
+            },
+            error: function() {
+              alert('Error al asignar los leads');
+            }
+          });
+        } else {
+          alert('Debe seleccionar al menos un lead y un closer');
+        }
+      });
+    });
+  </script>
+  
 {% endblock %}
+
+
+
 
 
