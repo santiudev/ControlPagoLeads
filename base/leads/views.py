@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+import logging
 
 
 User = get_user_model()
@@ -52,11 +53,8 @@ class LeadsTableView(LoginRequiredMixin, View):
             lead.save()
             return JsonResponse({'status': 'success', 'contacted': lead.contacted})
 
-
-class AssignLeadView(LoginRequiredMixin, View):
-    # Establecer los métodos permitidos como atributos de clase
-    http_method_names = ['post', 'post_multiple_leads']
-
+logger = logging.getLogger(__name__)
+class AssignSingleLeadView(LoginRequiredMixin, View):
     @csrf_exempt
     def post(self, request, *args, **kwargs):
         lead_id = request.POST.get('lead_id')
@@ -68,25 +66,26 @@ class AssignLeadView(LoginRequiredMixin, View):
         lead.save()
 
         return JsonResponse({'status': 'success'})
+    
 
+
+class AssignMultipleLeadsView(LoginRequiredMixin, View):
     @csrf_exempt
-    def post_multiple_leads(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         lead_ids = request.POST.getlist('lead_ids[]')
         closer_id = request.POST.get('closer_id')
 
+        print(f"lead_ids: {lead_ids}")
+        print(f"closer_id: {closer_id}")
+        closer = User.objects.get(id=closer_id)
+
         for lead_id in lead_ids:
-            lead = get_object_or_404(Lead, id=lead_id)
-            closer = get_object_or_404(User, id=closer_id)
-            lead.closer = closer
-            lead.save()
+            lead = Lead.objects.filter(id=lead_id).first()
+            if lead is not None:
+                lead.closer = closer
+                lead.save()
+            else:
+                logger.error(f"No se encontró el objeto Lead con id = {lead_id}")
 
         return JsonResponse({'status': 'success'})
-
-    @classmethod
-    def as_view(cls, **initkwargs):
-        view = super().as_view(**initkwargs)
-        # Establecer los métodos permitidos en el objeto de vista
-        view.http_method_names = cls.http_method_names
-        return view
-    
     

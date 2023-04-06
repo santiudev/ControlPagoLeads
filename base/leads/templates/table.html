@@ -56,7 +56,7 @@
     <tbody>
       {% for lead in leads %}
         <tr>
-          <td><input type="checkbox" class="lead-checkbox" data-lead-id="{{ lead.id }}" value="{{ lead.id }}"><td>
+          <td><input type="checkbox" class="lead-checkbox" data-lead-id="{{ lead.id }}" value="{{ lead.id }}"></td>
           <td>{{ lead.nombre }}</td>
           <td>{{ lead.fecha_hora|date:"d-m-Y H:i" }}</td>
           <td>{{ lead.error }}</td>
@@ -232,46 +232,50 @@
     });
   </script>
 
-
-  <script>
-    $(document).ready(function() {
-      // Manejar el evento de clic en el botón "Asignar a seleccionados"
-      $('#assign-selected').click(function() {
-        var leadIds = [];
-        $('.lead-checkbox:checked').each(function() {
-          leadIds.push($(this).val());
-        });
+<script>
+  $(document).ready(function() {
+    // Manejar el evento de clic del botón "Asignar a seleccionados"
+    $('#assign-selected').on('click', function() {
+      // Obtener los IDs de los leads seleccionados
+      const leadIds = $('.lead-checkbox:checked').map(function() {
+        return $(this).val();
+      }).get();
   
-        var closerId = $('#global-closer').val();
+      // Obtener el ID del closer seleccionado
+      const closerId = $('#global-closer').val();
   
-        if (leadIds.length > 0 && closerId) {
-          $.ajax({
-            url: 'assign_lead_multiple/',
-            method: 'POST',
-            data: {
-              'lead_ids': JSON.stringify(leadIds),
-              'closer_id': closerId,
-              'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
-            },
-            success: function(response) {
-              if (response.status === 'success') {
-                alert('Leads asignados correctamente');
-                // Recargar la página después de asignar los leads
-                location.reload();
-              } else {
-                alert('Error al asignar los leads');
-              }
-            },
-            error: function() {
-              alert('Error al asignar los leads');
-            }
-          });
-        } else {
-          alert('Debe seleccionar al menos un lead y un closer');
+      // Validar si hay leads y un closer seleccionados
+      if (leadIds.length === 0 || closerId === '') {
+        alert('Por favor, seleccione al menos un lead y un closer.');
+        return;
+      }
+  
+      // Enviar los datos al servidor para asignar los leads al closer
+      $.ajax({
+        url: '/assign_lead_multiple/', // Asegúrate de que esta URL coincide con la URL en tu archivo urls.py
+        method: 'POST',
+        data: {
+          'lead_ids[]': leadIds,
+          'closer_id': closerId,
+          'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+        },
+        success: function(response) {
+          if (response.status === 'success') {
+            alert('Leads asignados exitosamente.');
+            location.reload(); // Recargar la página para actualizar la tabla
+          } else {
+            alert('Hubo un error al asignar los leads. Por favor, inténtalo de nuevo.');
+          }
+        },
+        error: function() {
+          alert('Hubo un error al asignar los leads. Por favor, inténtalo de nuevo.');
         }
       });
     });
-  </script>
+  });
+
+</script>
+
   
 {% endblock %}
 
