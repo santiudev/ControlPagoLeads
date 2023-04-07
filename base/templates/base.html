@@ -30,11 +30,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="#">Tabla</a>
+              <a class="nav-link" href="{% url 'leads_table' %}">Leads Error Pago</a>
             </li>
+            {% if is_admin %}
             <li class="nav-item">
-              <a class="nav-link" href="#">En proceso</a>
+              <a class="nav-link" href="{% url 'closer_stats' %}">Control Closer</a>
             </li>
+            {% endif %}
           </ul>
           <ul class="navbar-nav ms-auto">
 

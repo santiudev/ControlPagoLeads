@@ -23,14 +23,14 @@ def get_hotmart_access_token(client_id, client_secret):
         print(f"Error: {response.status_code}, {response.text}")
         return None
 
+
+
 def get_sales_history(access_token, product_id=None):
-    url = "https://developers.hotmart.com/payments/api/v1/sales/history?transaction_status=CANCELLED"
-    
+    url = "https://developers.hotmart.com/payments/api/v1/sales/history?transaction_status=BLOCKED,CHARGEBACK,NO_FUNDS,PRINTED_BILLET,PROTESTED,WAITING_PAYMENT"
     
     if product_id:
         url += f"&product_id={product_id}"
 
-        
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}",
@@ -45,28 +45,6 @@ def get_sales_history(access_token, product_id=None):
         print(f"Error: {response.status_code}, {response.text}")
         return None
 
-
-def get_sales_history2(access_token, product_id=None):
-    url = "https://developers.hotmart.com/payments/api/v1/sales/history?transaction_status=APPROVED"
-    
-    
-    if product_id:
-        url += f"&product_id={product_id}"
-
-        
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}",
-    }
-
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        sales_history = response.json()
-        return sales_history
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
-        return None
 
 
 def main():
@@ -76,16 +54,10 @@ def main():
     access_token = get_hotmart_access_token(client_id, client_secret)
 
     if access_token:
-       
-        hotmart_data = get_sales_history(access_token, product_id="2645138")
-        hotmart_data2 = get_sales_history2(access_token, product_id="2645138")
+     
+        hotmart_data = get_sales_history(access_token, product_id="")
 
-        combined_data = {
-            "CANCELLED": hotmart_data,
-            "APPROVED": hotmart_data2
-        }
-
-        print(json.dumps(combined_data, indent=2))
+        print(json.dumps(hotmart_data, indent=2))
     else:
         print("No se pudo obtener el token de acceso.")
 

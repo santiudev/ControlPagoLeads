@@ -11,6 +11,11 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 import logging
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+import json
+from django.utils import timezone
+
 
 
 User = get_user_model()
@@ -23,7 +28,7 @@ class LeadsTableView(LoginRequiredMixin, View):
 
         if request.user.is_superuser:
             leads = Lead.objects.all()
-            closers = User.objects.filter(lead__isnull=False).distinct()
+            closers = User.objects.all()
         else:
             leads = Lead.objects.filter(closer=request.user)
             closers = []
@@ -89,3 +94,34 @@ class AssignMultipleLeadsView(LoginRequiredMixin, View):
 
         return JsonResponse({'status': 'success'})
     
+    
+@csrf_exempt
+@require_POST
+def handle_webhook(request):
+    # Procesa los datos del webhook aquí
+    data = json.loads(request.body)
+    print(data)
+    buyer_name = data['data']['buyer']['name']
+    
+    phone_number = data['data']['buyer']['checkout_phone']
+    payment_status = data['data']['purchase']['status']
+
+    # Lista de estados de pago válidos
+    valid_payment_statuses = ['BLOCKED', 'CANCELLED', 'CHARGEBACK', 'NO_FUNDS', 'PRINTED_BILLET', 'PROTESTED', 'UNDER_ANALISYS', 'WAITING_PAYMENT']
+
+    # Verifica si el payment_status es válido
+    if payment_status in valid_payment_statuses:
+    #Guarda la data en modelo Lead
+        lead = Lead(
+            nombre=buyer_name,
+            fecha_hora=timezone.datetime.now(),
+
+            numero=phone_number,
+            error=payment_status
+        )
+        lead.save()
+    # Devuelve una respuesta de éxito
+    return JsonResponse({"status": "success"})
+
+
+

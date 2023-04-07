@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-^b0tm0q@31$$s3&14okaafn64q$93is-lj7gw#*t_yo#mnvd5d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'deec-2800-810-598-198-cd91-911a-7448-a1a1.sa.ngrok.io']
 
 
 # Application definition
@@ -42,7 +42,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = ["https://deec-2800-810-598-198-cd91-911a-7448-a1a1.sa.ngrok.io"]
+
 ROOT_URLCONF = 'base.urls'
+
 
 TEMPLATES = [
     {
@@ -99,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Argentina/Buenos_Aires'
 
 USE_I18N = True
 

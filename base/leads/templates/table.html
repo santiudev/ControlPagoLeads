@@ -27,8 +27,10 @@
   </div>
   <div>
     <form method="POST" id="assign-leads-form">
+
       {% csrf_token %}
       <div class="form-group">
+        {% if is_admin %}
         <label for="global-closer">Asignar a seleccionados:</label>
         <select class="form-control" id="global-closer" name="closer_id">
           <option value="">-- Seleccione un closer --</option>
@@ -38,6 +40,7 @@
         </select>
         <button type="button" class="btn btn-primary" id="assign-selected">Asignar a seleccionados</button>
       </div>
+      {% endif %}
   {% if is_admin %}
   <!-- Tabla para el administrador -->
   <table class="table table-striped table-bordered">
