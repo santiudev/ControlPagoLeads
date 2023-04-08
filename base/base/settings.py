@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-^b0tm0q@31$$s3&14okaafn64q$93is-lj7gw#*t_yo#mnvd5d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '39d0-2800-810-598-198-7c19-20e4-1bcf-bc17.ngrok-free.app']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -42,7 +42,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://39d0-2800-810-598-198-7c19-20e4-1bcf-bc17.ngrok-free.app/"]
+#CSRF_TRUSTED_ORIGINS = ''
 
 ROOT_URLCONF = 'base.urls'
 
@@ -112,7 +112,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
