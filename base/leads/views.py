@@ -6,7 +6,7 @@ from .models import Lead
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -15,14 +15,15 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
 from django.utils import timezone
-
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
 User = get_user_model()
 class LeadsTableView(LoginRequiredMixin, View):
     template_name = 'table.html'
     login_url = '/login/'
-
+    @method_decorator(csrf_exempt)
     def get(self, request, *args, **kwargs):
         option = request.GET.get('option')
 
@@ -47,7 +48,7 @@ class LeadsTableView(LoginRequiredMixin, View):
             closer_name = request.user.closer.name
         
         return render(request, self.template_name, {'leads': leads, 'closer_name': closer_name, 'is_admin': request.user.is_superuser, 'closers': closers})
-
+    
     def post(self, request, *args, **kwargs):
         lead_id = request.POST.get('lead_id')
         action = request.POST.get('action')
@@ -60,7 +61,7 @@ class LeadsTableView(LoginRequiredMixin, View):
 
 logger = logging.getLogger(__name__)
 class AssignSingleLeadView(LoginRequiredMixin, View):
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         lead_id = request.POST.get('lead_id')
         closer_id = request.POST.get('closer_id')
@@ -75,7 +76,7 @@ class AssignSingleLeadView(LoginRequiredMixin, View):
 
 
 class AssignMultipleLeadsView(LoginRequiredMixin, View):
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         lead_ids = request.POST.getlist('lead_ids[]')
         closer_id = request.POST.get('closer_id')

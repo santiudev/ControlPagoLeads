@@ -9,7 +9,8 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from .models import Closer
 from leads.models import Lead
-
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
 class CloserLoginView(LoginView):
@@ -45,7 +46,7 @@ class AdminRequiredMixin(UserPassesTestMixin):
 class CloserStatsView(AdminRequiredMixin, View):
     template_name = 'closer_stats.html'
     login_url = '/login/'
-
+    @method_decorator(csrf_exempt)
     def get(self, request, *args, **kwargs):
         closers = Closer.objects.annotate(
             total_leads=Count('lead'),
