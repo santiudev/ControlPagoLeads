@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-^b0tm0q@31$$s3&14okaafn64q$93is-lj7gw#*t_yo#mnvd5d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'deec-2800-810-598-198-cd91-911a-7448-a1a1.sa.ngrok.io']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '39d0-2800-810-598-198-7c19-20e4-1bcf-bc17.ngrok-free.app']
 
 
 # Application definition
@@ -42,7 +42,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://deec-2800-810-598-198-cd91-911a-7448-a1a1.sa.ngrok.io"]
+CSRF_TRUSTED_ORIGINS = ["https://39d0-2800-810-598-198-7c19-20e4-1bcf-bc17.ngrok-free.app/"]
 
 ROOT_URLCONF = 'base.urls'
 
@@ -120,3 +120,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'closer.Closer'
 LOGIN_REDIRECT_URL = '/leads/'
+
+
+# Configuración de correo electrónico
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'santiqte@gmail.com'
+# EMAIL_HOST_PASSWORD = 'tafnegmsnzcpotkl'

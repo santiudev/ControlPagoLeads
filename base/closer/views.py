@@ -51,5 +51,5 @@ class CloserStatsView(AdminRequiredMixin, View):
             total_leads=Count('lead'),
             contacted_leads=Count('lead', filter=Q(lead__contacted=True))
         )
-
+    
         return render(request, self.template_name, {'closers': closers})
