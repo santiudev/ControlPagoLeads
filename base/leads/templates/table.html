@@ -114,7 +114,7 @@
             <td>{{ lead.numero }}</td>
             <td>
               {% if lead.numero %}
-              <a href="https://api.whatsapp.com/send?phone={{ lead.numero }}&text=Hola!%20Soy%20{{ user.first_name }},%20¿cómo%20estás?" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+              <a href="https://api.whatsapp.com/send?phone={{ lead.numero }}&text=Hola%20{{ lead.nombre }}!%20Soy%20{{ user.first_name }},%20soporte%20del%20equipo%20de%20Maurito.%20Me%20comunico%20con%20vos%20ya%20que%20vimos%20que%20tuviste%20un%20problema%20con%20el%20pago%20a%20la%20hora%20de%20intentar%20realizar%20la%20inscripción.%20Te%20voy%20a%20ayudar%20para%20que%20puedas%20ingresar%20al%20curso%20finalmente,%20para%20esto%20necesito%20que%20me%20cuentes%20que%20pasó?%20Que%20te%20aparecía%20en%20el%20cartel%20de%20error?" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
                 
                   <i class="fab fa-whatsapp" style="color: green;"></i>
                   <span style="color: green;">Hablar al WhatsApp</span>
